@@ -18,7 +18,8 @@ Request::Request()
 
 Request::~Request()
 {
-
+	if(buffer != nullptr)
+		delete [] buffer;
 }
 void Request::assignBuffer(unsigned int length, unsigned char* dataBuffer)
 {
