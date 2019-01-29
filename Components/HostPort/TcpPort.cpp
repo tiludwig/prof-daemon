@@ -112,7 +112,6 @@ Request* TcpPort::waitForRequest()
 			protocol->appendData(temp);
 		}
 	}
-
 	return protocol->getPacket();
 }
 

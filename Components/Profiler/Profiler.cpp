@@ -20,5 +20,5 @@ Profiler::~Profiler()
 
 void Profiler::acceptRequest(Request* request)
 {
-
+	printf("Profiler: got a request.\n");
 }
