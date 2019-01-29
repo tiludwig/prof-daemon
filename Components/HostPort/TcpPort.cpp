@@ -7,6 +7,7 @@
 
 #include "TcpPort.hpp"
 #include <cstdio>
+#include <string.h>
 
 TcpPort::TcpPort()
 {
@@ -23,9 +24,12 @@ bool TcpPort::initialize()
 	return true;
 }
 
-bool TcpPort::waitForRequest()
+std::unique_ptr<Request> TcpPort::waitForRequest()
 {
-	return false;
+	auto request = std::unique_ptr<Request>(new Request());
+	const char* data = "Hello world.";
+	request->assignBuffer(strlen(data)+1, const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(data)));
+	return request;
 }
 
 bool TcpPort::sendResponse(Serializable& response)

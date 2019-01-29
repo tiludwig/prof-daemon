@@ -19,7 +19,7 @@ public:
 	virtual ~TcpPort();
 
 	virtual bool initialize();
-	virtual bool waitForRequest();
+	virtual std::unique_ptr<Request> waitForRequest();
 	virtual bool sendResponse(Serializable& response);
 };
 
