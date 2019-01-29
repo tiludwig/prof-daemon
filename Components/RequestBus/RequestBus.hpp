@@ -9,12 +9,13 @@
 #define COMPONENTS_REQUESTBUS_REQUESTBUS_HPP_
 
 #include <vector>
+#include <unordered_map>
 #include "BusComponent.hpp"
 
 class RequestBus
 {
 private:
-	std::vector<BusComponent*> components;
+	std::unordered_map<unsigned int, std::vector<BusComponent*>> components;
 public:
 	RequestBus();
 	virtual ~RequestBus();

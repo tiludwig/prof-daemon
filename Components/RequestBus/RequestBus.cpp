@@ -22,20 +22,30 @@ RequestBus::~RequestBus()
 void RequestBus::registerComponent(unsigned int requestType,
 		BusComponent* component)
 {
-	components.push_back(component);
+	auto iterator = components.find(requestType);
+	if(iterator == components.end())
+		components[requestType] = std::vector<BusComponent*>();
+
+	components[requestType].push_back(component);
 }
 void RequestBus::unregisterComponent(unsigned int requestType,
 		BusComponent* component)
 {
-	auto iterator = std::find(components.begin(), components.end(), component);
+	auto iterator = components.find(requestType);
 	if(iterator == components.end())
 		return;
-
-	components.erase(iterator);
+	auto componentIterator = std::find(iterator->second.begin(), iterator->second.end(), component);
+	iterator->second.erase(componentIterator);
 }
 
 void RequestBus::forwardRequest(Request* request)
 {
-	for(auto& component : components)
+	auto iterator = components.find(request->getType());
+	if(iterator == components.end())
+		return;
+
+	for(auto& component : iterator->second)
+	{
 		component->acceptRequest(request);
+	}
 }

@@ -7,18 +7,38 @@
 
 #include "Profiler.hpp"
 
+class ProfilingRequest: IDeserializable
+{
+private:
+	const char* message;
+public:
+	ProfilingRequest()
+	{
+		message = nullptr;
+	}
+
+	const char* getMessage()
+	{
+		return message;
+	}
+
+	virtual void deserialize(Request* request)
+	{
+		message = const_cast<const char*>(reinterpret_cast<char*>(request->getBuffer()));
+	}
+};
+
 Profiler::Profiler()
 {
-	// TODO Auto-generated constructor stub
 
 }
 
 Profiler::~Profiler()
 {
-	// TODO Auto-generated destructor stub
 }
 
-void Profiler::acceptRequest(Request* request)
+void Profiler::acceptRequest(Request* base)
 {
-	printf("Profiler: got a request.\n");
+	auto request = base->createType<ProfilingRequest>();
+	printf("[Profiler] Got a request: '%s'\n", request.getMessage());
 }
