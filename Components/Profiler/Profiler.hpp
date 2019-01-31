@@ -16,7 +16,7 @@ public:
 	Profiler();
 	virtual ~Profiler();
 
-	virtual void acceptRequest(Request* request);
+	virtual void acceptRequest(std::unique_ptr<Request> request);
 };
 
 #endif /* COMPONENTS_PROFILER_PROFILER_HPP_ */

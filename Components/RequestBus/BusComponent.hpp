@@ -7,7 +7,7 @@ class BusComponent
 {
 public:
 	virtual ~BusComponent() {}
-	virtual void acceptRequest(Request* request) = 0;
+	virtual void acceptRequest(std::unique_ptr<Request> request) = 0;
 };
 
 #endif

@@ -16,9 +16,9 @@
 #include <netinet/in.h>
 #include <string.h>
 
-TcpPort::TcpPort(HostProtocol* proto)
+TcpPort::TcpPort(std::unique_ptr<HostProtocol> proto)
 {
-	protocol = proto;
+	protocol = std::move(proto);
 	isInResponseState = false;
 	serverSocket = -1;
 	clientSocket = -1;
@@ -85,7 +85,7 @@ void TcpPort::waitForClient()
 	}
 }
 
-Request* TcpPort::waitForRequest()
+std::unique_ptr<Request> TcpPort::waitForRequest()
 {
 	waitForClient();
 	protocol->resetReceiver();

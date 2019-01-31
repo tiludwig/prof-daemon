@@ -15,7 +15,7 @@ class IDeserializable
 {
 public:
 	virtual ~IDeserializable(){}
-	virtual void deserialize(class Request*) = 0;
+	virtual void deserialize(const class Request&) = 0;
 };
 
 class Request
@@ -23,7 +23,7 @@ class Request
 private:
 	unsigned int type;
 	unsigned int length;
-	unsigned char* buffer;
+	std::unique_ptr<unsigned char[]> buffer;
 	unsigned int bufferIndex;
 	unsigned int checksum;
 private:
@@ -32,14 +32,14 @@ public:
 	Request();
 	~Request();
 
-	void assignBuffer(unsigned int length, unsigned char* dataBuffer);
-	unsigned char* getBuffer();
+	void assignBuffer(unsigned int length, std::unique_ptr<unsigned char[]> dataBuffer);
+	unsigned char* getBuffer() const;
 
 	void setType(unsigned int type);
-	unsigned int getType();
-	unsigned int getLength();
+	unsigned int getType() const;
+	unsigned int getLength() const;
 
-	unsigned int getChecksum();
+	unsigned int getChecksum() const;
 	/**
 	 * Creates a concrete request from this generic request
 	 */
@@ -48,7 +48,7 @@ public:
 	{
 		static_assert(std::is_base_of<IDeserializable, T>::value, "Request::createType<T>(): Type 'T' has to be implement the 'IDeserializable' interface.");
 		T concreteType;
-		concreteType.deserialize(this);
+		concreteType.deserialize(*this);
 		return concreteType;
 	}
 };

@@ -17,12 +17,12 @@ public:
 	{
 		shouldExit = false;
 	}
-	void deserialize(Request* req)
+	void deserialize(const Request& req)
 	{
-		if (req->getType() != 100)
+		if (req.getType() != 100)
 			return;
 
-		auto value = *req->getBuffer();
+		auto value = *req.getBuffer();
 		shouldExit = (value == 0) ? false : true;
 	}
 
@@ -36,23 +36,19 @@ class Application: public BusComponent
 {
 private:
 	bool wasExitRequested;
-	HostProtocol* protocol;
 public:
 	Application()
 	{
 		wasExitRequested = false;
-		protocol = nullptr;
 	}
 
 	~Application()
 	{
-		if(protocol != nullptr)
-			delete protocol;
 	}
 
 	int run()
 	{
-		protocol = HostProtocolFactory::createProtocol(
+		auto protocol = HostProtocolFactory::createProtocol(
 				ProtocolType::Default);
 		if (protocol == nullptr)
 		{
@@ -62,7 +58,7 @@ public:
 
 		RequestBus bus;
 		Profiler prof;
-		TcpPort port(protocol);
+		TcpPort port(std::move(protocol));
 
 		port.initialize();
 		bus.registerComponent(200, &prof);
@@ -71,14 +67,13 @@ public:
 		while (!wasExitRequested)
 		{
 			auto req = port.waitForRequest();
-			bus.forwardRequest(req);
-			delete req;
+			bus.forwardRequest(std::move(req));
 		}
 		printf("Exiting\n");
 		return 0;
 	}
 
-	virtual void acceptRequest(Request* req)
+	virtual void acceptRequest(std::unique_ptr<Request> req)
 	{
 		auto request = req->createType<ApplicationRequest>();
 		wasExitRequested = request.getValue();

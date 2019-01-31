@@ -21,7 +21,7 @@ public:
 	virtual ~HostPort() {}
 
 	virtual bool initialize() = 0;
-	virtual Request* waitForRequest() = 0;
+	virtual std::unique_ptr<Request> waitForRequest() = 0;
 	virtual bool sendResponse(Serializable& response) = 0;
 };
 

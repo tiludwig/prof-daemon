@@ -37,9 +37,6 @@ void DefaultProtocol::appendData(unsigned char newData)
 		type = 0;
 		length = 0;
 		checksum = 0;
-		if (this->data != nullptr)
-			delete[] this->data;
-
 		// read first byte
 		type = ((unsigned int)newData) << 24;
 		tempBytesReceived = 1;
@@ -61,7 +58,7 @@ void DefaultProtocol::appendData(unsigned char newData)
 
 		if (tempBytesReceived >= sizeof(unsigned int))
 		{
-			this->data = new unsigned char[length];
+			data.reset(new unsigned char[length]);
 			tempBytesReceived = 0;
 			currentState = ReceiverStates::ReadingData;
 		}
@@ -89,11 +86,13 @@ void DefaultProtocol::appendData(unsigned char newData)
 	}
 }
 
-Request* DefaultProtocol::getPacket()
+std::unique_ptr<Request> DefaultProtocol::getPacket()
 {
-	Request* result = new Request();
+	auto result = std::unique_ptr<Request>(new Request());
 	result->setType(type);
-	result->assignBuffer(length, data);
+	std::unique_ptr<unsigned char> dataPtr;
+
+	result->assignBuffer(length, std::move(data));
 	return result;
 }
 

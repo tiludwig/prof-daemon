@@ -19,13 +19,13 @@ enum class ProtocolType
 class HostProtocolFactory
 {
 public:
-	static HostProtocol* createProtocol(ProtocolType type)
+	static std::unique_ptr<HostProtocol> createProtocol(ProtocolType type)
 	{
-		HostProtocol* result = nullptr;
+		std::unique_ptr<HostProtocol> result = nullptr;
 		switch(type)
 		{
 		case ProtocolType::Default:
-			result = new DefaultProtocol();
+			result = std::unique_ptr<HostProtocol>(new DefaultProtocol());
 			break;
 		}
 		return result;
