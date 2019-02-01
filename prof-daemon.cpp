@@ -85,6 +85,52 @@ public:
  */
 int main(int argc, char** argv)
 {
-	Application app;
-	return app.run();
+	try
+	{
+		Profiler prof;
+		char* arguments[argc];
+		for(int i = 0; i < argc - 1;i++)
+		{
+			arguments[i] = argv[i+1];
+		}
+		arguments[argc-1] = NULL;
+
+		auto result = prof.profile(argv[1], arguments);
+
+		printf("\nProfiling result:\n");
+		printf("%20llu cycles\n", result.cycleCount);
+		printf("%20llu retired instructions\n", result.retInstructionsCount);
+		printf("%20.2f cycles per instruction\n",
+				((float) result.cycleCount / result.retInstructionsCount));
+		printf("%20llu context switches\n", result.ctxSwitchesCount);
+
+		double timeElapsed = (result.cycleCount / 1.2);
+		int unitIndex = 0;
+		const char* units[] =
+		{ "ns", "us", "ms", "s" };
+		if (timeElapsed > 1000.0)
+		{
+			timeElapsed = timeElapsed / 1000.0;
+			unitIndex++;
+		}
+
+		if (timeElapsed > 1000.0)
+		{
+			timeElapsed = timeElapsed / 1000.0;
+			unitIndex++;
+		}
+
+		if (timeElapsed > 1000.0)
+		{
+			timeElapsed = timeElapsed / 1000.0;
+			unitIndex++;
+		}
+
+		printf("%20.2f %s elapsed\n", timeElapsed, units[unitIndex]);
+	} catch (const char* errormsg)
+	{
+		printf("error: %s\n", errormsg);
+		//Application app;
+		//return app.run();
+	}
 }
