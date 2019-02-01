@@ -46,12 +46,10 @@ static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
 
 Profiler::Profiler()
 {
-	targetPid = -1;
 	cycleCounterFd = -1;
 	retInstrCounterFd = -1;
 	ctxSwitchCounterFd = -1;
-	childReadPipe = -1;
-	childWritePipe = -1;
+
 	cycleCounterId = 0;
 	retInstrCounterId = 0;
 	ctxSwitchCounterId = 0;
@@ -67,12 +65,6 @@ Profiler::~Profiler()
 
 	if (ctxSwitchCounterFd != -1)
 		close(ctxSwitchCounterFd);
-
-	if (childReadPipe != -1)
-		close(childReadPipe);
-
-	if (childWritePipe != -1)
-		close(childWritePipe);
 }
 
 void Profiler::initCycleCounter(pid_t pid)
@@ -86,13 +78,19 @@ void Profiler::initCycleCounter(pid_t pid)
 	pe.disabled = 1;
 	pe.exclude_kernel = 1;
 	pe.exclude_hv = 1;
-	pe.enable_on_exec = 1;
+
+	if (targetApp->isIsolatedProcess())
+	{
+		pe.enable_on_exec = 1;
+	}
+
 	pe.read_format = PERF_FORMAT_GROUP | PERF_FORMAT_ID;
 
 	cycleCounterFd = perf_event_open(&pe, pid, -1, -1, 0);
 	if (cycleCounterFd == -1)
 	{
 		printf("initCycleCounter: pid=%d failed to open\n", pid);
+		perror("perror: ");
 		throw "Failed to open cycle counter.";
 	}
 }
@@ -163,71 +161,37 @@ CounterValues Profiler::readPerformanceCounter()
 	return result;
 }
 
-CounterValues Profiler::profile(const char* filename, char** arguments)
+void Profiler::setProfilingTarget(std::unique_ptr<ITarget> target)
 {
-	createChildProcessPipe();
-	pid_t childPid = startChildProcess(filename, arguments);
+	targetApp = std::move(target);
+}
 
-	close(childReadPipe);
-	childReadPipe = -1;
+CounterValues Profiler::profile()
+{
+	targetApp->initialize();
+	pid_t childPid = targetApp->run();
 
 	initCycleCounter(childPid);
 	initRetInstructionsCounter(childPid);
 	initCTXSwitchCounter(childPid);
 
-	// get ids
 	ioctl(cycleCounterFd, PERF_EVENT_IOC_ID, &cycleCounterId);
 	ioctl(retInstrCounterFd, PERF_EVENT_IOC_ID, &retInstrCounterId);
 	ioctl(ctxSwitchCounterFd, PERF_EVENT_IOC_ID, &ctxSwitchCounterId);
 
-	write(childWritePipe, "1", 1);
 
-	// wait for the child to exit
-	waitpid(childPid, NULL, 0);
-	// disable event counters
+	if (!targetApp->isIsolatedProcess())
+	{
+		// if it is not an isolated process start the counters now.
+		ioctl(cycleCounterFd, PERF_EVENT_IOC_ENABLE, PERF_IOC_FLAG_GROUP);
+	}
+
+	ioctl(cycleCounterFd, PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP);
+	targetApp->startInterestingPart();
+	targetApp->waitForTargetToFinish();
 	ioctl(cycleCounterFd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP);
 
 	return readPerformanceCounter();
-}
-
-void Profiler::createChildProcessPipe()
-{
-	int pfd[2];
-	int pipeResult = pipe(pfd);
-	if (pipeResult == -1)
-		throw "Failed to create pipe.";
-
-	childReadPipe = pfd[0];
-	childWritePipe = pfd[1];
-}
-
-pid_t Profiler::startChildProcess(const char* filename, char** arguments)
-{
-	pid_t forkResult = fork();
-	if (forkResult == -1)
-		throw "Failed to create child process.";
-
-	// check if we are the parent process
-	if (forkResult > 0)
-		return forkResult;
-
-	// do child stuff
-	close(childWritePipe);
-	childWritePipe = -1;
-	// wait for start signal. blocks until parent sends start
-	char signal;
-	read(childReadPipe, &signal, 1);
-	if (signal != '1')
-	{
-		perror("error start child: ");
-		throw "Invalid signal from parent process.";
-	}
-
-	close(childReadPipe);
-	childReadPipe = -1;
-	execv(filename, arguments);
-	// if we reach this point there was an error
-	throw "Failed to execute target binary.";
 }
 
 void Profiler::acceptRequest(std::unique_ptr<Request> base)

@@ -16,22 +16,27 @@ public:
 	 */
 	virtual void initialize() = 0;
 
+	virtual void setStartupParameters(const char* filename, char* arguments[]) = 0;
+
+	virtual bool isIsolatedProcess() = 0;
 
 	/**
 	 * @returns the pid of the target process
 	 */
-	virtual void run(const char* filename, char* arguments[]) = 0;
+	virtual __pid_t run() = 0;
 
 	/**
 	 *
 	 */
-	virtual void write(char* buffer, int count) = 0;
+	virtual void sendData(char* buffer, int count) = 0;
 
 	/**
 	 *
 	 */
-	virtual int read(char* buffer, int bytesToRead) = 0;
+	virtual int receiveData(char* buffer, int bytesToRead) = 0;
 
+	virtual void startInterestingPart() = 0;
+	virtual void waitForTargetToFinish() = 0;
 };
 
 #endif

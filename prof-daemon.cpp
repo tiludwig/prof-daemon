@@ -7,6 +7,7 @@
 #include "Components/RequestBus/RequestBus.hpp"
 #include "Components/Profiler/Profiler.hpp"
 #include "Components/HostPort/Protocol/DefaultProtocol.hpp"
+#include "Components/Target/CmdLineTarget.hpp"
 
 class ApplicationRequest: IDeserializable
 {
@@ -95,7 +96,11 @@ int main(int argc, char** argv)
 		}
 		arguments[argc-1] = NULL;
 
-		auto result = prof.profile(argv[1], arguments);
+		auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
+		target->setStartupParameters(argv[1], arguments);
+
+		prof.setProfilingTarget(std::move(target));
+		auto result = prof.profile();
 
 		printf("\nProfiling result:\n");
 		printf("%20llu cycles\n", result.cycleCount);

@@ -9,6 +9,7 @@
 #define COMPONENTS_PROFILER_PROFILER_HPP_
 
 #include "../RequestBus/BusComponent.hpp"
+#include "../Target/ITarget.hpp"
 #include <linux/types.h>
 
 struct CounterValues
@@ -33,17 +34,15 @@ struct read_format
 class Profiler: public BusComponent
 {
 private:
-	pid_t targetPid;
 	int cycleCounterFd;
 	int retInstrCounterFd;
 	int ctxSwitchCounterFd;
 
-	int childReadPipe;
-	int childWritePipe;
-
 	__u64 cycleCounterId;
 	__u64 retInstrCounterId;
 	__u64 ctxSwitchCounterId;
+
+	std::unique_ptr<ITarget> targetApp;
 private:
 	void initCycleCounter(pid_t pid);
 	void initRetInstructionsCounter(pid_t pid);
@@ -51,13 +50,12 @@ private:
 
 	CounterValues readPerformanceCounter();
 
-	void createChildProcessPipe();
-	pid_t startChildProcess(const char* filename, char** arguments);
 public:
 	Profiler();
 	virtual ~Profiler();
 
-	CounterValues profile(const char* filename, char** arguments);
+	void setProfilingTarget(std::unique_ptr<ITarget> target);
+	CounterValues profile();
 
 	virtual void acceptRequest(std::unique_ptr<Request> request);
 };
