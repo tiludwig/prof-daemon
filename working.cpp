@@ -181,10 +181,10 @@ int workingmain(int argc, char** argv)
 	close(pfd[1]);
 
 	printf("\nProfiling result:\n");
-	printf("%20lu cycles\n", cpuCycles);
-	printf("%20lu retired instructions\n", retiredInstructions);
+	printf("%20llu cycles\n", cpuCycles);
+	printf("%20llu retired instructions\n", retiredInstructions);
 	printf("%20.2f cycles per instruction\n", ((float)cpuCycles/retiredInstructions));
-	printf("%20lu context switches\n", ctxSwitches);
+	printf("%20llu context switches\n", ctxSwitches);
 	printf("%20.2f ms elapsed\n", (cpuCycles/1200000.0));
 	return 0;
 }
