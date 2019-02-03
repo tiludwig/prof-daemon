@@ -10,6 +10,8 @@
 #include <cstring>
 #include <string>
 #include "Components/HostPort/Protocol/DefaultProtocolOLD.hpp"
+#include "Components/DataLink/LinkLayer/TcpLink.hpp"
+#include "Components/DataLink/ProtocolLayer/DefaultProtocol.hpp"
 
 class ApplicationRequest: IDeserializable
 {
@@ -117,6 +119,13 @@ public:
  */
 int main(int argc, char** argv)
 {
-	Application app;
-	return app.run(argc, argv);
+	auto protocol = std::unique_ptr<DefaultProtocol>(new DefaultProtocol());
+	TcpLink link;
+	link.setProtocol(std::move(protocol));
+	link.initialize();
+	auto packet = link.waitForPacket();
+	printf("Got a packet: [%d] => '%s'\n", packet->id, packet->payload);
+	return 0;
+	//Application app;
+	//return app.run(argc, argv);
 }

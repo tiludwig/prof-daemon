@@ -55,8 +55,6 @@ void DefaultProtocol::processData(char data)
 		stream << data;
 		if (stream.bytesAvailable() == 1)
 		{
-			char checksum;
-			stream >> checksum;
 			if (stream.getChecksum() != 0)
 			{
 				resetReceiver();
