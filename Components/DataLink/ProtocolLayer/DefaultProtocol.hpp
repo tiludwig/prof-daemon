@@ -9,7 +9,7 @@
 #define DATALINK_PROTOCOLLAYER_DEFAULTPROTOCOL_HPP_
 
 #include "LinkProtocol.hpp"
-#include "../CheckedLinkStream.hpp"
+#include "../LinkStream/CheckedLinkStream.hpp"
 
 class DefaultProtocol: public LinkProtocol
 {
