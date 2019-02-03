@@ -15,10 +15,15 @@ TcpLink::TcpLink()
 {
 	isConnected = false;
 	clientSocket = -1;
+	serverSocket = -1;
 }
 
 TcpLink::~TcpLink()
 {
+	if (clientSocket >= 0)
+		close(clientSocket);
+	if (serverSocket >= 0)
+		close(serverSocket);
 }
 
 void TcpLink::setProtocol(std::unique_ptr<LinkProtocol> protocol)
@@ -28,9 +33,31 @@ void TcpLink::setProtocol(std::unique_ptr<LinkProtocol> protocol)
 
 bool TcpLink::initialize()
 {
-	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (clientSocket < 0)
+	// Creating socket file descriptor
+	if ((serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == 0)
 	{
+		perror("socket failed");
+		return false;
+	}
+
+	const int optVal = 1;
+	const socklen_t optLen = sizeof(optVal);
+	setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, (void*) &optVal, optLen);
+
+	sockaddr_in serverAddress;
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_addr.s_addr = INADDR_ANY;
+	serverAddress.sin_port = htons(8080);
+
+	// Forcefully attaching socket to the port 8080
+	if (bind(serverSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0)
+	{
+		perror("bind failed");
+		return false;
+	}
+	if (listen(serverSocket, 1) < 0)
+	{
+		perror("listen");
 		return false;
 	}
 
@@ -39,22 +66,20 @@ bool TcpLink::initialize()
 
 bool TcpLink::open(const char* ip, uint16_t port)
 {
-	if (isConnected)
+	if (clientSocket >= 0)
 	{
 		return true;
 	}
 
-	memset(&serverAddress, 0, sizeof(serverAddress));
-	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_port = htons(port);
-	serverAddress.sin_addr.s_addr = inet_addr(ip);
-
-	if (connect(clientSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0)
+	sockaddr_in clientAddress;
+	int addressLength = sizeof(clientAddress);
+	clientSocket = accept(serverSocket, (struct sockaddr *) &clientAddress, (socklen_t*) &addressLength);
+	if (clientSocket < 0)
 	{
+		perror("accept");
 		return false;
 	}
 
-	isConnected = true;
 	return true;
 }
 
@@ -82,24 +107,26 @@ void TcpLink::sendPacket(HostPacket& packet)
 
 std::unique_ptr<HostPacket> TcpLink::waitForPacket()
 {
+	open("", 0);
 	linkProtocol->resetReceiver();
 
 	char value;
-	while(!linkProtocol->isPacketComplete())
+	while (!linkProtocol->isPacketComplete())
 	{
 
 		auto readResult = read(clientSocket, &value, 1);
-		if(readResult == -1)
+		if (readResult == -1)
 		{
 			linkProtocol->resetReceiver();
 		}
-		else if(readResult == 0)
+		else if (readResult == 0)
 		{
 			// server disconnected during read ...
 			close(clientSocket);
 			clientSocket = -1;
 
 			// reconnect
+			open("", 0);
 
 			linkProtocol->resetReceiver();
 		}

@@ -16,6 +16,7 @@ class TcpLink: public DataLink
 {
 private:
 	bool isConnected;
+	int serverSocket;
 	int clientSocket;
 	sockaddr_in serverAddress;
 	std::unique_ptr<LinkProtocol> linkProtocol;
