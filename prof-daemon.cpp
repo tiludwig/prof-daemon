@@ -6,10 +6,10 @@
 #include "Components/HostPort/Protocol/HostProtocolFactory.hpp"
 #include "Components/RequestBus/RequestBus.hpp"
 #include "Components/Profiler/Profiler.hpp"
-#include "Components/HostPort/Protocol/DefaultProtocol.hpp"
 #include "Components/Target/CmdLineTarget.hpp"
 #include <cstring>
 #include <string>
+#include "Components/HostPort/Protocol/DefaultProtocolOLD.hpp"
 
 class ApplicationRequest: IDeserializable
 {

@@ -5,10 +5,11 @@
  *      Author: tim
  */
 
-#include "DefaultProtocol.hpp"
+#include "DefaultProtocolOLD.hpp"
+
 #include <cstdio>
 
-DefaultProtocol::DefaultProtocol()
+DefaultProtocol_OLD::DefaultProtocol_OLD()
 {
 	printf("Creating protocol.\n");
 	currentState = ReceiverStates::Idle;
@@ -19,17 +20,17 @@ DefaultProtocol::DefaultProtocol()
 	data = nullptr;
 }
 
-DefaultProtocol::~DefaultProtocol()
+DefaultProtocol_OLD::~DefaultProtocol_OLD()
 {
 	printf("Destroying protocol.\n");
 }
 
-bool DefaultProtocol::isPacketComplete()
+bool DefaultProtocol_OLD::isPacketComplete()
 {
 	return (currentState == ReceiverStates::PacketReceived);
 }
 
-void DefaultProtocol::appendData(unsigned char newData)
+void DefaultProtocol_OLD::appendData(unsigned char newData)
 {
 	switch (currentState)
 	{
@@ -86,7 +87,7 @@ void DefaultProtocol::appendData(unsigned char newData)
 	}
 }
 
-std::unique_ptr<Request> DefaultProtocol::getPacket()
+std::unique_ptr<Request> DefaultProtocol_OLD::getPacket()
 {
 	auto result = std::unique_ptr<Request>(new Request());
 	result->setType(type);
@@ -96,7 +97,7 @@ std::unique_ptr<Request> DefaultProtocol::getPacket()
 	return result;
 }
 
-void DefaultProtocol::resetReceiver()
+void DefaultProtocol_OLD::resetReceiver()
 {
 	currentState = ReceiverStates::Idle;
 }

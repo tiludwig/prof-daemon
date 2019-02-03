@@ -5,8 +5,8 @@
  *      Author: tim
  */
 
-#ifndef COMPONENTS_HOSTPORT_PROTOCOL_DEFAULTPROTOCOL_HPP_
-#define COMPONENTS_HOSTPORT_PROTOCOL_DEFAULTPROTOCOL_HPP_
+#ifndef COMPONENTS_HOSTPORT_PROTOCOL_DEFAULTPROTOCOLOLD_HPP_
+#define COMPONENTS_HOSTPORT_PROTOCOL_DEFAULTPROTOCOLOLD_HPP_
 
 #include "../Requests/Request.hpp"
 #include "HostProtocol.hpp"
@@ -24,7 +24,7 @@ enum ReceiverState
 };
 }
 
-class DefaultProtocol : public HostProtocol
+class DefaultProtocol_OLD : public HostProtocol
 {
 private:
 	ReceiverStates::ReceiverState currentState;
@@ -34,8 +34,8 @@ private:
 	unsigned int checksum;
 	std::unique_ptr<unsigned char[]> data;
 public:
-	DefaultProtocol();
-	virtual ~DefaultProtocol();
+	DefaultProtocol_OLD();
+	virtual ~DefaultProtocol_OLD();
 
 	virtual bool isPacketComplete();
 	virtual void appendData(unsigned char data);
@@ -43,4 +43,4 @@ public:
 	virtual void resetReceiver();
 };
 
-#endif /* COMPONENTS_HOSTPORT_PROTOCOL_DEFAULTPROTOCOL_HPP_ */
+#endif /* COMPONENTS_HOSTPORT_PROTOCOL_DEFAULTPROTOCOLOLD_HPP_ */

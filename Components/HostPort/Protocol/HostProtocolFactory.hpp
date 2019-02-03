@@ -8,8 +8,8 @@
 #ifndef COMPONENTS_HOSTPORT_PROTOCOL_HOSTPROTOCOLFACTORY_HPP_
 #define COMPONENTS_HOSTPORT_PROTOCOL_HOSTPROTOCOLFACTORY_HPP_
 
+#include "DefaultProtocolOLD.hpp"
 #include "HostProtocol.hpp"
-#include "DefaultProtocol.hpp"
 
 enum class ProtocolType
 {
@@ -25,7 +25,7 @@ public:
 		switch(type)
 		{
 		case ProtocolType::Default:
-			result = std::unique_ptr<HostProtocol>(new DefaultProtocol());
+			result = std::unique_ptr<HostProtocol>(new DefaultProtocol_OLD());
 			break;
 		}
 		return result;
