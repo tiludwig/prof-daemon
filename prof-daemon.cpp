@@ -55,8 +55,7 @@ public:
 	{
 		try
 		{
-			auto protocol = HostProtocolFactory::createProtocol(
-					ProtocolType::Default);
+			auto protocol = HostProtocolFactory::createProtocol(ProtocolType::Default);
 			if (protocol == nullptr)
 			{
 				printf("No protocol found.\n");
@@ -79,7 +78,6 @@ public:
 			filename.reserve(filenameLength + directoryLength);
 			filename.append(directory);
 			filename.append(argv[1]);
-
 
 			auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
 			target->setStartupParameters(filename.c_str(), arguments);
@@ -114,18 +112,66 @@ public:
 	}
 };
 
+class SomeRequest
+{
+public:
+	const char* name;
+	int cycleCount;
+	int retInstrCount;
+public:
+	SomeRequest()
+	{
+		name = nullptr;
+		cycleCount= 0;
+		retInstrCount = 0;
+	}
+
+	~SomeRequest()
+	{
+		if(name != nullptr)
+			delete [] name;
+	}
+
+	void deserialize(HostPacket& packet)
+	{
+		auto payload = packet.payloadStream;
+		// extract payload
+		payload >> cycleCount >> retInstrCount;
+		int namelength;
+		payload >> namelength;
+		char* temp = new char[namelength];
+		for(int i = 0; i < namelength; i++)
+		{
+			payload >> temp[i];
+		}
+		name = const_cast<const char*>(temp);
+	}
+};
+
 /**
  *	Daemon main entry point
  */
 int main(int argc, char** argv)
 {
+	try
+	{
+
+
 	auto protocol = std::unique_ptr<DefaultProtocol>(new DefaultProtocol());
 	TcpLink link;
 	link.setProtocol(std::move(protocol));
 	link.initialize();
 	auto packet = link.waitForPacket();
-	printf("Got a packet: [%d] => '%s'\n", packet->id, packet->payload);
+	auto request = packet->createType<SomeRequest>();
+
+	printf("Got a packet: '%s' => %d, %d\n", request.name, request.cycleCount, request.retInstrCount);
 	return 0;
+	}
+	catch(const char* err)
+	{
+		printf("Error: %s\n", err);
+		return -1;
+	}
 	//Application app;
 	//return app.run(argc, argv);
 }

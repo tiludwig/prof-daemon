@@ -10,53 +10,32 @@
 HostPacket::HostPacket()
 {
 	this->id = 0;
-	payloadSize = 0;
 	checksum = 0;
-	payload = nullptr;
-	payloadCreated = false;
 
 }
 
 HostPacket::HostPacket(unsigned int id)
 {
 	this->id = id;
-	payloadSize = 0;
 	checksum = 0;
-	payload = nullptr;
-	payloadCreated = false;
 }
 
 HostPacket::~HostPacket()
 {
-	if (payloadCreated)
-	{
-		printf("Deleting payload.\n");
-		delete[] payload;
-	}
-}
-
-void HostPacket::addPayload(const char* payload, unsigned int size)
-{
-	payloadSize = size;
-	this->payload = payload;
 }
 
 unsigned int HostPacket::getPacketSize()
 {
-	return (4 + 4 + payloadSize + 1);
+	return (4 + 4 + payloadStream.streamSize() + 1);
 }
 
 std::unique_ptr<CheckedLinkStream> HostPacket::serialize()
 {
-	auto stream = std::unique_ptr<CheckedLinkStream>(new CheckedLinkStream(payloadSize));
-	//CheckedLinkStream stream(payloadSize);
+	auto stream = std::unique_ptr<CheckedLinkStream>(new CheckedLinkStream(payloadStream.streamSize()));
 	*stream << id;
-	*stream << payloadSize;
-	for (unsigned int i = 0; i < payloadSize; i++)
-	{
-		*stream << payload[i];
-	}
-	*stream << checksum;
+	*stream << payloadStream.streamSize();
+	*stream << payloadStream;
+	*stream << stream->getChecksum();
 	return std::move(stream);
 }
 
@@ -66,15 +45,16 @@ void HostPacket::deserialize(CheckedLinkStream& stream)
 		throw "Failed to create HostPacket from CheckedStream (invalid stream).";
 
 	stream >> id;
+	unsigned int payloadSize;
 	stream >> payloadSize;
 
-	char* buffer = new char[payloadSize];
-	payloadCreated = true;
+
+	char temp;
 	for (unsigned int i = 0; i < payloadSize; i++)
 	{
-		stream >> buffer[i];
+		stream >> temp;
+		payloadStream << temp;
 	}
-	payload = const_cast<const char*>(buffer);
 	stream >> checksum;
 }
 
