@@ -23,7 +23,7 @@ public:
 	void registerComponent(unsigned int requestType, BusComponent* component);
 	void unregisterComponent(unsigned int requestType, BusComponent* component);
 
-	void forwardRequest(Request* request);
+	void forwardRequest(std::unique_ptr<Request> request);
 };
 
 #endif /* COMPONENTS_REQUESTBUS_REQUESTBUS_HPP_ */

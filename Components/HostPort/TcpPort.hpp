@@ -20,16 +20,16 @@ private:
 	int serverSocket;
 	int clientSocket;
 	bool isInResponseState;
-	HostProtocol* protocol;
+	std::unique_ptr<HostProtocol> protocol;
 private:
 	void waitForClient();
 	bool isClientConnected();
 public:
-	TcpPort(HostProtocol* proto);
+	TcpPort(std::unique_ptr<HostProtocol> proto);
 	virtual ~TcpPort();
 
 	virtual bool initialize();
-	virtual Request* waitForRequest();
+	virtual std::unique_ptr<Request> waitForRequest();
 	virtual bool sendResponse(Serializable& response);
 };
 

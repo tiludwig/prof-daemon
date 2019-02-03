@@ -11,7 +11,7 @@ public:
 	}
 	virtual bool isPacketComplete() = 0;
 	virtual void appendData(unsigned char data) = 0;
-	virtual Request* getPacket() = 0;
+	virtual std::unique_ptr<Request> getPacket() = 0;
 	virtual void resetReceiver() = 0;
 };
 

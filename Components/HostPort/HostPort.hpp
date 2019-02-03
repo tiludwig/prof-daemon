@@ -4,7 +4,7 @@
 #define HOSTPORT_HPP_
 
 #include "Serializable.hpp"
-#include "Requests/Request.hpp"
+//#include "Requests/Request.hpp"
 #include <memory>
 
 struct request_t
@@ -21,7 +21,7 @@ public:
 	virtual ~HostPort() {}
 
 	virtual bool initialize() = 0;
-	virtual Request* waitForRequest() = 0;
+	virtual std::unique_ptr<class Request> waitForRequest() = 0;
 	virtual bool sendResponse(Serializable& response) = 0;
 };
 

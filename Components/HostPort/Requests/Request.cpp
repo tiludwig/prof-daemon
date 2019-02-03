@@ -9,27 +9,25 @@
 
 Request::Request()
 {
+	sender = nullptr;
 	length = 0;
 	bufferIndex = 0;
-	buffer = nullptr;
 	checksum = 0;
 	type = 0;
 }
 
 Request::~Request()
 {
-	if(buffer != nullptr)
-		delete [] buffer;
 }
-void Request::assignBuffer(unsigned int length, unsigned char* dataBuffer)
+void Request::assignBuffer(unsigned int length, std::unique_ptr<unsigned char[]> dataBuffer)
 {
-	buffer = dataBuffer;
+	buffer = std::move(dataBuffer);
 	this->length = length;
 }
 
-unsigned char* Request::getBuffer()
+unsigned char* Request::getBuffer() const
 {
-	return buffer;
+	return buffer.get();
 }
 
 void Request::setType(unsigned int type)
@@ -37,17 +35,27 @@ void Request::setType(unsigned int type)
 	this->type = type;
 }
 
-unsigned int Request::getType()
+unsigned int Request::getType() const
 {
 	return type;
 }
 
-unsigned int Request::getLength()
+unsigned int Request::getLength() const
 {
 	return length;
 }
 
-unsigned int Request::getChecksum()
+unsigned int Request::getChecksum() const
 {
 	return 0;
+}
+
+void Request::setSender(HostPort* sender)
+{
+	this->sender = sender;
+}
+
+HostPort* Request::getSender()
+{
+	return sender;
 }

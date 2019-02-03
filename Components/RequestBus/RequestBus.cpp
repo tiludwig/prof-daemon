@@ -38,7 +38,7 @@ void RequestBus::unregisterComponent(unsigned int requestType,
 	iterator->second.erase(componentIterator);
 }
 
-void RequestBus::forwardRequest(Request* request)
+void RequestBus::forwardRequest(std::unique_ptr<Request> request)
 {
 	auto iterator = components.find(request->getType());
 	if(iterator == components.end())
@@ -46,6 +46,6 @@ void RequestBus::forwardRequest(Request* request)
 
 	for(auto& component : iterator->second)
 	{
-		component->acceptRequest(request);
+		component->acceptRequest(std::move(request));
 	}
 }

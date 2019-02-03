@@ -32,14 +32,14 @@ private:
 	unsigned int type;
 	unsigned int length;
 	unsigned int checksum;
-	unsigned char* data;
+	std::unique_ptr<unsigned char[]> data;
 public:
 	DefaultProtocol();
 	virtual ~DefaultProtocol();
 
 	virtual bool isPacketComplete();
 	virtual void appendData(unsigned char data);
-	virtual Request* getPacket();
+	virtual std::unique_ptr<Request> getPacket();
 	virtual void resetReceiver();
 };
 
