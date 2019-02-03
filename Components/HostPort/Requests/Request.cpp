@@ -9,6 +9,7 @@
 
 Request::Request()
 {
+	sender = nullptr;
 	length = 0;
 	bufferIndex = 0;
 	checksum = 0;
@@ -47,4 +48,14 @@ unsigned int Request::getLength() const
 unsigned int Request::getChecksum() const
 {
 	return 0;
+}
+
+void Request::setSender(HostPort* sender)
+{
+	this->sender = sender;
+}
+
+HostPort* Request::getSender()
+{
+	return sender;
 }

@@ -10,6 +10,7 @@
 
 #include <type_traits>
 #include <memory>
+#include "../HostPort.hpp"
 
 class IDeserializable
 {
@@ -26,6 +27,7 @@ private:
 	std::unique_ptr<unsigned char[]> buffer;
 	unsigned int bufferIndex;
 	unsigned int checksum;
+	HostPort* sender;
 private:
 	unsigned int calculateChecksum();
 public:
@@ -40,6 +42,9 @@ public:
 	unsigned int getLength() const;
 
 	unsigned int getChecksum() const;
+
+	void setSender(HostPort* sender);
+	HostPort* getSender();
 	/**
 	 * Creates a concrete request from this generic request
 	 */
