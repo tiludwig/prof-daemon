@@ -8,6 +8,8 @@
 #include "Components/Profiler/Profiler.hpp"
 #include "Components/HostPort/Protocol/DefaultProtocol.hpp"
 #include "Components/Target/CmdLineTarget.hpp"
+#include <cstring>
+#include <string>
 
 class ApplicationRequest: IDeserializable
 {
@@ -47,31 +49,60 @@ public:
 	{
 	}
 
-	int run()
+	int run(int argc, char** argv)
 	{
-		auto protocol = HostProtocolFactory::createProtocol(
-				ProtocolType::Default);
-		if (protocol == nullptr)
+		try
 		{
-			printf("No protocol found.\n");
-			return -1;
-		}
+			auto protocol = HostProtocolFactory::createProtocol(
+					ProtocolType::Default);
+			if (protocol == nullptr)
+			{
+				printf("No protocol found.\n");
+				return -1;
+			}
 
-		RequestBus bus;
-		Profiler prof;
-		TcpPort port(std::move(protocol));
+			Profiler prof;
 
-		port.initialize();
-		bus.registerComponent(200, &prof);
-		bus.registerComponent(100, this);
+			char* arguments[argc];
+			for (int i = 0; i < argc - 1; i++)
+			{
+				arguments[i] = argv[i + 1];
+			}
+			arguments[argc - 1] = NULL;
 
-		while (!wasExitRequested)
+			const char* directory = "./";
+			size_t directoryLength = strlen(directory);
+			size_t filenameLength = strlen(argv[1]);
+			std::string filename;
+			filename.reserve(filenameLength + directoryLength);
+			filename.append(directory);
+			filename.append(argv[1]);
+
+
+			auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
+			target->setStartupParameters(filename.c_str(), arguments);
+
+			prof.setProfilingTarget(std::move(target));
+
+			RequestBus bus;
+			TcpPort port(std::move(protocol));
+
+			port.initialize();
+			bus.registerComponent(200, &prof);
+			bus.registerComponent(100, this);
+
+			while (!wasExitRequested)
+			{
+				auto req = port.waitForRequest();
+				bus.forwardRequest(std::move(req));
+			}
+			printf("Exiting\n");
+			return 0;
+		} catch (const char* err)
 		{
-			auto req = port.waitForRequest();
-			bus.forwardRequest(std::move(req));
+			printf("Error: %s\n", err);
 		}
-		printf("Exiting\n");
-		return 0;
+		return -1;
 	}
 
 	virtual void acceptRequest(std::unique_ptr<Request> req)
@@ -86,56 +117,6 @@ public:
  */
 int main(int argc, char** argv)
 {
-	try
-	{
-		Profiler prof;
-		char* arguments[argc];
-		for(int i = 0; i < argc - 1;i++)
-		{
-			arguments[i] = argv[i+1];
-		}
-		arguments[argc-1] = NULL;
-
-		auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
-		target->setStartupParameters(argv[1], arguments);
-
-		prof.setProfilingTarget(std::move(target));
-		auto result = prof.profile();
-
-		printf("\nProfiling result:\n");
-		printf("%20llu cycles\n", result.cycleCount);
-		printf("%20llu retired instructions\n", result.retInstructionsCount);
-		printf("%20.2f cycles per instruction\n",
-				((float) result.cycleCount / result.retInstructionsCount));
-		printf("%20llu context switches\n", result.ctxSwitchesCount);
-
-		double timeElapsed = (result.cycleCount / 1.2);
-		int unitIndex = 0;
-		const char* units[] =
-		{ "ns", "us", "ms", "s" };
-		if (timeElapsed > 1000.0)
-		{
-			timeElapsed = timeElapsed / 1000.0;
-			unitIndex++;
-		}
-
-		if (timeElapsed > 1000.0)
-		{
-			timeElapsed = timeElapsed / 1000.0;
-			unitIndex++;
-		}
-
-		if (timeElapsed > 1000.0)
-		{
-			timeElapsed = timeElapsed / 1000.0;
-			unitIndex++;
-		}
-
-		printf("%20.2f %s elapsed\n", timeElapsed, units[unitIndex]);
-	} catch (const char* errormsg)
-	{
-		printf("error: %s\n", errormsg);
-		//Application app;
-		//return app.run();
-	}
+	Application app;
+	return app.run(argc, argv);
 }

@@ -15,23 +15,73 @@
 
 class ProfilingRequest: IDeserializable
 {
-private:
-	const char* message;
+public:
+	struct RequestData
+	{
+		char wasStartRequested;
+		std::string targetName;
+	} data;
 public:
 	ProfilingRequest()
 	{
-		message = nullptr;
+		data.wasStartRequested = false;
 	}
 
-	const char* getMessage()
+	bool isStartRequest()
 	{
-		return message;
+		return data.wasStartRequested;
 	}
 
 	virtual void deserialize(const Request& request)
 	{
-		message =
-				const_cast<const char*>(reinterpret_cast<char*>(request.getBuffer()));
+		auto requestBuffer = request.getBuffer();
+		data.wasStartRequested = static_cast<char>(requestBuffer[0]);
+		auto bufferIndex = reinterpret_cast<const char*>(&requestBuffer[1]);
+		while(*bufferIndex != '\0')
+			data.targetName += *bufferIndex;
+	}
+};
+
+class ProfilingResponse : public Serializable
+{
+
+public:
+	struct
+	{
+		__u64 cycleCount;
+		__u64 retInstrCount;
+		__u64 ctxSwitches;
+		__u64 cpuFrequency;
+	} data;
+
+	ProfilingResponse(CounterValues vals)
+	{
+		data.cycleCount = vals.cycleCount;
+		data.retInstrCount = vals.retInstructionsCount;
+		data.ctxSwitches = vals.ctxSwitchesCount;
+		data.cpuFrequency = 1200000000;
+	}
+
+	virtual SerializedResult serialize()
+	{
+		SerializedResult result;
+
+		auto buffer = std::unique_ptr<unsigned char[]>(new unsigned char[4+4+sizeof(data)+4]);
+		auto dataBuffer = reinterpret_cast<unsigned char*>(&data);
+
+		unsigned int* typeptr = reinterpret_cast<unsigned int*>(buffer.get());
+		*typeptr = 250;
+		unsigned int* lengthptr = reinterpret_cast<unsigned int*>(&buffer[4]);
+		*lengthptr = sizeof(data);
+
+		for(unsigned int i = 0; i < sizeof(data); i++)
+		{
+			buffer[8+i] = dataBuffer[i];
+		}
+
+		result.buffer = std::move(buffer);
+		result.size = 4+4+sizeof(data)+4;
+		return result;
 	}
 };
 
@@ -197,5 +247,11 @@ CounterValues Profiler::profile()
 void Profiler::acceptRequest(std::unique_ptr<Request> base)
 {
 	auto request = base->createType<ProfilingRequest>();
-	printf("[Profiler] Got a request: '%s'\n", request.getMessage());
+	if(request.isStartRequest())
+	{
+		auto profilingResult = profile();
+		ProfilingResponse response(profilingResult);
+		auto sender = base->getSender();
+		sender->sendResponse(response);
+	}
 }
