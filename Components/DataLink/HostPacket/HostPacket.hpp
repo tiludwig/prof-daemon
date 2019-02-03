@@ -8,7 +8,7 @@
 #ifndef COMPONENTS_HOSTCLIENT_HOSTPACKET_HPP_
 #define COMPONENTS_HOSTCLIENT_HOSTPACKET_HPP_
 
-#include "../../DataLink/CheckedLinkStream.hpp"
+#include "../LinkStream/CheckedLinkStream.hpp"
 #include <memory>
 
 class HostPacket
