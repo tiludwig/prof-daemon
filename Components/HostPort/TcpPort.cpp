@@ -91,14 +91,14 @@ std::unique_ptr<Request> TcpPort::waitForRequest()
 	protocol->resetReceiver();
 	char temp;
 
-	while(!protocol->isPacketComplete())
+	while (!protocol->isPacketComplete())
 	{
 		int received = read(clientSocket, &temp, 1);
-		if(received == -1)
+		if (received == -1)
 		{
 			protocol->resetReceiver();
 		}
-		else if(received == 0)
+		else if (received == 0)
 		{
 			// socket has disconnected
 			close(clientSocket);
@@ -112,16 +112,17 @@ std::unique_ptr<Request> TcpPort::waitForRequest()
 			protocol->appendData(temp);
 		}
 	}
-	return protocol->getPacket();
+	auto packet = protocol->getPacket();
+	packet->setSender(this);
+	return packet;
 }
 
 bool TcpPort::sendResponse(Serializable& response)
 {
-	if (!isInResponseState)
-		throw "[TCPPORT] Not in response state.";
+	//if (!isInResponseState)
+	//	throw "[TCPPORT] Not in response state.";
 
 	auto rawResponse = response.serialize();
-	printf("Sending response [size=%d, '%s']\n", rawResponse.size,
-			rawResponse.buffer.get());
+	write(clientSocket, rawResponse.buffer.get(), rawResponse.size);
 	return false;
 }
