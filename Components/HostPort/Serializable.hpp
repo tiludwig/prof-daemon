@@ -6,7 +6,7 @@
 
 struct SerializedResult
 {
-	std::unique_ptr<char> buffer;
+	std::unique_ptr<unsigned char[]> buffer;
 	unsigned int size;
 };
 
