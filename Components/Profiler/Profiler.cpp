@@ -41,8 +41,7 @@ public:
 	}
 };
 
-static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
-		int cpu, int group_fd, unsigned long flags)
+static long perf_event_open(struct perf_event_attr *hw_event, pid_t pid, int cpu, int group_fd, unsigned long flags)
 {
 	int ret;
 
@@ -115,8 +114,7 @@ void Profiler::initRetInstructionsCounter(pid_t pid)
 	retInstrCounterFd = perf_event_open(&pe, pid, -1, cycleCounterFd, 0);
 	if (retInstrCounterFd == -1)
 	{
-		printf("initRetInstrCounter: pid=%d, leader=%d failed to open\n", pid,
-				cycleCounterFd);
+		printf("initRetInstrCounter: pid=%d, leader=%d failed to open\n", pid, cycleCounterFd);
 		throw "Failed to open counter for retired instructions.";
 	}
 }
@@ -135,8 +133,7 @@ void Profiler::initCTXSwitchCounter(pid_t pid)
 	ctxSwitchCounterFd = perf_event_open(&pe, pid, -1, cycleCounterFd, 0);
 	if (ctxSwitchCounterFd == -1)
 	{
-		printf("ctxSwitchCounter: pid=%d, leader=%d failed to open\n", pid,
-				cycleCounterFd);
+		printf("ctxSwitchCounter: pid=%d, leader=%d failed to open\n", pid, cycleCounterFd);
 		perror("error: ");
 		throw "Failed to open context switch counter.";
 	}
@@ -185,7 +182,6 @@ CounterValues Profiler::profile()
 	ioctl(retInstrCounterFd, PERF_EVENT_IOC_ID, &retInstrCounterId);
 	ioctl(ctxSwitchCounterFd, PERF_EVENT_IOC_ID, &ctxSwitchCounterId);
 
-
 	if (!targetApp->isIsolatedProcess())
 	{
 		// if it is not an isolated process start the counters now.
@@ -200,14 +196,13 @@ CounterValues Profiler::profile()
 	return readPerformanceCounter();
 }
 
-void Profiler::acceptRequest(std::unique_ptr<Request> base)
+void Profiler::accept(HostPacket* packet)
 {
-	auto request = base->createType<ProfilingRequest>();
-	if(request.isStartRequest())
+	auto request = packet->createType<ProfilingRequest>();
+	if (request.isStartRequest())
 	{
 		auto profilingResult = profile();
 		ProfilingResponse response(profilingResult);
-		auto sender = base->getSender();
-		sender->sendResponse(response);
+		link->sendPacket(response);
 	}
 }

@@ -51,15 +51,6 @@ public:
 	{
 		try
 		{
-			auto protocol = HostProtocolFactory::createProtocol(ProtocolType::Default);
-			if (protocol == nullptr)
-			{
-				printf("No protocol found.\n");
-				return -1;
-			}
-
-			Profiler prof;
-
 			char* arguments[argc];
 			for (int i = 0; i < argc - 1; i++)
 			{
@@ -78,18 +69,23 @@ public:
 			auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
 			target->setStartupParameters(filename.c_str(), arguments);
 
+			Profiler prof;
 			prof.setProfilingTarget(std::move(target));
 
-			RequestBus bus;
-			TcpPort port(std::move(protocol));
+			auto protocol = std::unique_ptr<DefaultProtocol>(new DefaultProtocol());
+			TcpLink link;
+			link.setProtocol(std::move(protocol));
+			link.initialize();
 
-			port.initialize();
+			prof.link = &link;
+
+			RequestBus bus;
 			bus.registerComponent(200, &prof);
 			bus.registerComponent(100, this);
 
 			while (!wasExitRequested)
 			{
-				auto req = port.waitForRequest();
+				auto req = link.waitForPacket();
 				bus.forwardRequest(std::move(req));
 			}
 			printf("Exiting\n");
@@ -101,46 +97,10 @@ public:
 		return -1;
 	}
 
-	virtual void acceptRequest(std::unique_ptr<Request> req)
+	virtual void accept(HostPacket* packet)
 	{
-		auto request = req->createType<ApplicationRequest>();
+		auto request = packet->createType<ApplicationRequest>();
 		wasExitRequested = request.getValue();
-	}
-};
-
-class SomeRequest
-{
-public:
-	const char* name;
-	int cycleCount;
-	int retInstrCount;
-public:
-	SomeRequest()
-	{
-		name = nullptr;
-		cycleCount= 0;
-		retInstrCount = 0;
-	}
-
-	~SomeRequest()
-	{
-		if(name != nullptr)
-			delete [] name;
-	}
-
-	void deserialize(HostPacket& packet)
-	{
-		auto payload = packet.payloadStream;
-		// extract payload
-		payload >> cycleCount >> retInstrCount;
-		int namelength;
-		payload >> namelength;
-		char* temp = new char[namelength];
-		for(int i = 0; i < namelength; i++)
-		{
-			payload >> temp[i];
-		}
-		name = const_cast<const char*>(temp);
 	}
 };
 
@@ -149,25 +109,6 @@ public:
  */
 int main(int argc, char** argv)
 {
-	try
-	{
-
-
-	auto protocol = std::unique_ptr<DefaultProtocol>(new DefaultProtocol());
-	TcpLink link;
-	link.setProtocol(std::move(protocol));
-	link.initialize();
-	auto packet = link.waitForPacket();
-	auto request = packet->createType<SomeRequest>();
-
-	printf("Got a packet: '%s' => %d, %d\n", request.name, request.cycleCount, request.retInstrCount);
-	return 0;
-	}
-	catch(const char* err)
-	{
-		printf("Error: %s\n", err);
-		return -1;
-	}
-	//Application app;
-	//return app.run(argc, argv);
+	Application app;
+	return app.run(argc, argv);
 }

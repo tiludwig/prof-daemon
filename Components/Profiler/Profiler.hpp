@@ -8,6 +8,7 @@
 #ifndef COMPONENTS_PROFILER_PROFILER_HPP_
 #define COMPONENTS_PROFILER_PROFILER_HPP_
 
+#include "../DataLink/LinkLayer/DataLink.hpp"
 #include "../RequestBus/BusComponent.hpp"
 #include "../Target/ITarget.hpp"
 #include <linux/types.h>
@@ -83,13 +84,15 @@ private:
 	CounterValues readPerformanceCounter();
 
 public:
+
+	DataLink* link;
 	Profiler();
 	virtual ~Profiler();
 
 	void setProfilingTarget(std::unique_ptr<ITarget> target);
 	CounterValues profile();
 
-	virtual void acceptRequest(std::unique_ptr<Request> request);
+	virtual void accept(HostPacket* request);
 };
 
 #endif /* COMPONENTS_PROFILER_PROFILER_HPP_ */
