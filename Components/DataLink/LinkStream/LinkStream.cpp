@@ -42,11 +42,11 @@ void LinkStream::reset()
 void LinkStream::seekg(unsigned int position, unsigned int direction)
 {
 	auto currentPosition = streamReadPosition;
-	if(direction == pos_beg)
+	if (direction == pos_beg)
 	{
 		currentPosition = position;
 	}
-	else if(direction == pos_end)
+	else if (direction == pos_end)
 	{
 		currentPosition = dataBuffer.size() - position;
 	}
@@ -55,7 +55,7 @@ void LinkStream::seekg(unsigned int position, unsigned int direction)
 		currentPosition += position;
 	}
 
-	if(currentPosition > dataBuffer.size())
+	if (currentPosition > dataBuffer.size())
 		currentPosition = dataBuffer.size();
 
 	streamReadPosition = currentPosition;
@@ -89,21 +89,9 @@ char* LinkStream::end()
 
 char* LinkStream::iterator()
 {
-	if(streamReadPosition > dataBuffer.size())
+	if (streamReadPosition > dataBuffer.size())
 		return end();
 	return &dataBuffer[streamReadPosition];
-}
-
-LinkStream& operator<<(LinkStream& stream, char value)
-{
-	stream.appendValue(value);
-	return stream;
-}
-
-LinkStream& operator<<(LinkStream& stream, unsigned char value)
-{
-	stream.appendValue(value);
-	return stream;
 }
 
 LinkStream& operator<<(LinkStream& stream, const char* value)
@@ -116,9 +104,17 @@ LinkStream& operator<<(LinkStream& stream, const char* value)
 	return stream;
 }
 
+LinkStream& operator<<(LinkStream& stream, const std::string& value)
+{
+	for (auto& character : value)
+		stream.appendValue(character);
+	stream.appendValue('\0');
+	return stream;
+}
+
 LinkStream& operator<<(LinkStream& stream, LinkStream& value)
 {
-	for(auto& v : value)
+	for (auto& v : value)
 	{
 		stream << v;
 	}
@@ -132,5 +128,16 @@ LinkStream& operator>>(LinkStream& stream, char& value)
 		throw "Failed to extract from CheckedStream. Not enough bytes available";
 
 	value = stream.dataBuffer[stream.streamReadPosition++];
+	return stream;
+}
+
+LinkStream& operator>>(LinkStream& stream, std::string& value)
+{
+	if (stream.bytesAvailable() < sizeof(char))
+		throw "Failed to extract from CheckedStream. Not enough bytes available";
+
+	value = stream.iterator();
+	stream.streamReadPosition += value.size() + 1;
+
 	return stream;
 }

@@ -9,6 +9,7 @@
 #define DATALINK_LINKSTREAM_HPP_
 
 #include <vector>
+#include <string>
 
 class LinkStream
 {
@@ -41,19 +42,17 @@ public:
 	// Stream operators
 	template<class T>
 	friend LinkStream& operator<<(LinkStream& stream, T value);
-
-	friend LinkStream& operator<<(LinkStream& stream, char value);
-	friend LinkStream& operator<<(LinkStream& stream, unsigned char value);
-	friend LinkStream& operator<<(LinkStream& stream, const char* value);
 	friend LinkStream& operator<<(LinkStream& stream, LinkStream& value);
+
+	friend LinkStream& operator<<(LinkStream& stream, const char* value);
+	friend LinkStream& operator<<(LinkStream& stream, const std::string& value);
 
 	template<class T>
 	friend LinkStream& operator>>(LinkStream& stream, T& value);
 
 	friend LinkStream& operator>>(LinkStream& stream, char& value);
-	friend LinkStream& operator>>(LinkStream& stream, const char* value);
+	friend LinkStream& operator>>(LinkStream& stream, std::string& value);
 };
-
 
 //
 //	Template stream operators
@@ -62,10 +61,17 @@ public:
 template<class T>
 LinkStream& operator<<(LinkStream& stream, T value)
 {
-	for (unsigned int i = 0; i < sizeof(T); i++)
+	if (sizeof(T) == sizeof(char))
 	{
-		stream.appendValue(value & 0xFF);
-		value = value >> 8;
+		stream.appendValue(value);
+	}
+	else
+	{
+		for (unsigned int i = 0; i < sizeof(T); i++)
+		{
+			stream.appendValue(value & 0xFF);
+			value = value >> 8;
+		}
 	}
 	return stream;
 }
