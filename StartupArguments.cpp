@@ -12,6 +12,25 @@ StartupArguments::StartupArguments()
 
 }
 
+void StartupArguments::append(std::string& arg)
+{
+	arguments.push_back(arg);
+}
+
+StartupArguments StartupArguments::getRange(unsigned int start, unsigned int count)
+{
+	if((start + count) > arguments.size())
+		throw "Index out of bounds.";
+
+	StartupArguments args;
+	for(unsigned int i = start; i < count; i++)
+	{
+		args.append(arguments[i]);
+	}
+
+	return args;
+}
+
 StartupArguments StartupArguments::fromRawArgs(int argc, char** argv)
 {
 	StartupArguments args;

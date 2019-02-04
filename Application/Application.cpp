@@ -15,7 +15,9 @@
 #include <string>
 #include <cstring>
 
-Application::Application()
+using namespace std;
+
+Application::Application(StartupArguments& args) : startArgs(args)
 {
 	exitRequested = false;
 }
@@ -24,27 +26,37 @@ Application::~Application()
 {
 }
 
-int Application::run(int argc, char** argv)
+void Application::initialize()
+{
+
+}
+
+void Application::printUsage()
+{
+	printf("Usage: pdaemon <target>	<options...>\n");
+	printf("\n");
+	printf("Arguments:\n");
+	printf("       target\tThe name of the target application located in ./targets/");
+	printf("\n");
+	printf("       options\tThese options will be forwarded to the target.\n");
+}
+
+int Application::run()
 {
 	try
 	{
-		char* arguments[argc];
-		for (int i = 0; i < argc - 1; i++)
+		unsigned int argCount = startArgs.getCount();
+		if(argCount < 2)
 		{
-			arguments[i] = argv[i + 1];
+			printUsage();
+			return -1;
 		}
-		arguments[argc - 1] = NULL;
-
-		const char* directory = "./";
-		size_t directoryLength = strlen(directory);
-		size_t filenameLength = strlen(argv[1]);
-		std::string filename;
-		filename.reserve(filenameLength + directoryLength);
-		filename.append(directory);
-		filename.append(argv[1]);
+		string targetname("./");
+		targetname += startArgs[1];
+		auto targetArgs = startArgs.getRange(1, argCount - 1);
 
 		auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
-		target->setStartupParameters(filename.c_str(), arguments);
+		target->setStartupParameters(targetname, targetArgs);
 
 		Profiler prof;
 		prof.setProfilingTarget(std::move(target));
@@ -65,7 +77,6 @@ int Application::run(int argc, char** argv)
 			auto req = link.waitForPacket();
 			bus.forwardRequest(std::move(req));
 		}
-		printf("Exiting\n");
 		return 0;
 	} catch (const char* err)
 	{

@@ -10,17 +10,22 @@
 
 #include "Requests/AppRequest.hpp"
 #include "../Components/RequestBus/BusComponent.hpp"
+#include "../StartupArguments.hpp"
 
 class Application : public BusComponent
 {
 private:
 	bool exitRequested;
+	StartupArguments& startArgs;
 
+private:
+	void printUsage();
 public:
-	Application();
+	Application(StartupArguments& args);
 	virtual ~Application();
 
-	int run(int argc, char** argv);
+	void initialize();
+	int run();
 
 	virtual void accept(HostPacket* packet);
 };
