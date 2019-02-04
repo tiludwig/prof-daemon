@@ -11,7 +11,6 @@ HostPacket::HostPacket()
 {
 	this->id = 0;
 	checksum = 0;
-
 }
 
 HostPacket::HostPacket(unsigned int id)

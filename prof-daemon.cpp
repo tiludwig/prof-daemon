@@ -13,7 +13,7 @@
 #include "Components/DataLink/LinkLayer/TcpLink.hpp"
 #include "Components/DataLink/ProtocolLayer/DefaultProtocol.hpp"
 
-class ApplicationRequest: IDeserializable
+class ApplicationRequest
 {
 private:
 	bool shouldExit;
@@ -22,13 +22,9 @@ public:
 	{
 		shouldExit = false;
 	}
-	void deserialize(const Request& req)
+	void deserialize(LinkStream& payload)
 	{
-		if (req.getType() != 100)
-			return;
-
-		auto value = *req.getBuffer();
-		shouldExit = (value == 0) ? false : true;
+		payload >> shouldExit;
 	}
 
 	bool getValue()

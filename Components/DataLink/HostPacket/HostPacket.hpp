@@ -8,17 +8,16 @@
 #ifndef COMPONENTS_HOSTCLIENT_HOSTPACKET_HPP_
 #define COMPONENTS_HOSTCLIENT_HOSTPACKET_HPP_
 
-#include "../../DataLink/LinkStream/CheckedLinkStream.hpp"
+#include "../LinkStream/CheckedLinkStream.hpp"
 #include <memory>
 
 class HostPacket
 {
-public:
+private:
 	LinkStream payloadStream;
 public:
 	unsigned int id;
 	char checksum;
-
 private:
 	HostPacket();
 public:
@@ -56,7 +55,7 @@ T HostPacket::createType()
 {
 	//static_assert(std::is_base_of<IDeserializable, T>::value, "Request::createType<T>(): Type 'T' has to be implement the 'IDeserializable' interface.");
 	T concreteType;
-	concreteType.deserialize(*this);
+	concreteType.deserialize(this->payloadStream);
 	return concreteType;
 }
 

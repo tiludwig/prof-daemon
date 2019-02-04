@@ -19,6 +19,38 @@ struct CounterValues
 	__u64 ctxSwitchesCount;
 };
 
+class ProfilingResponse: public HostPacket
+{
+
+public:
+	struct
+	{
+		__u64 cycleCount;
+		__u64 retInstrCount;
+		__u64 ctxSwitches;
+		__u64 cpuFrequency;
+	} data;
+
+	ProfilingResponse(CounterValues vals) :
+			HostPacket(250)
+	{
+		data.cycleCount = vals.cycleCount;
+		data.retInstrCount = vals.retInstructionsCount;
+		data.ctxSwitches = vals.ctxSwitchesCount;
+		data.cpuFrequency = 1200000000;
+	}
+
+	virtual std::unique_ptr<CheckedLinkStream> serialize()
+	{
+		this->addPayload(data.cycleCount);
+		this->addPayload(data.retInstrCount);
+		this->addPayload(data.ctxSwitches);
+		this->addPayload(data.cpuFrequency);
+
+		return HostPacket::serialize();
+	}
+};
+
 struct read_format
 {
 	__u64 numberOfEvents; /* The number of events */
