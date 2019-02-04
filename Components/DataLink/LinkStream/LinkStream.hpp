@@ -42,14 +42,15 @@ public:
 	// Stream operators
 	template<class T>
 	friend LinkStream& operator<<(LinkStream& stream, T value);
+	friend LinkStream& operator<<(LinkStream& stream, bool value);
 	friend LinkStream& operator<<(LinkStream& stream, LinkStream& value);
-
 	friend LinkStream& operator<<(LinkStream& stream, const char* value);
 	friend LinkStream& operator<<(LinkStream& stream, const std::string& value);
 
 	template<class T>
 	friend LinkStream& operator>>(LinkStream& stream, T& value);
 
+	friend LinkStream& operator>>(LinkStream& stream, bool& value);
 	friend LinkStream& operator>>(LinkStream& stream, char& value);
 	friend LinkStream& operator>>(LinkStream& stream, std::string& value);
 };

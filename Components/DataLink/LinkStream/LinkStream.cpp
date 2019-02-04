@@ -94,6 +94,13 @@ char* LinkStream::iterator()
 	return &dataBuffer[streamReadPosition];
 }
 
+LinkStream& operator<<(LinkStream& stream, bool value)
+{
+	char temp = (value == true) ? 1 : 0;
+	stream.appendValue(temp);
+	return stream;
+}
+
 LinkStream& operator<<(LinkStream& stream, const char* value)
 {
 	while (*value != '\0')
@@ -116,8 +123,20 @@ LinkStream& operator<<(LinkStream& stream, LinkStream& value)
 {
 	for (auto& v : value)
 	{
-		stream << v;
+		stream.appendValue(v);
 	}
+
+	return stream;
+}
+
+LinkStream& operator>>(LinkStream& stream, bool& value)
+{
+	if (stream.bytesAvailable() < sizeof(char))
+		throw "Failed to extract from CheckedStream. Not enough bytes available";
+
+	char temp;
+	stream >> temp;
+	value = (temp == 0) ? false : true;
 
 	return stream;
 }
