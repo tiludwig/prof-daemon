@@ -23,6 +23,11 @@ HostPacket::~HostPacket()
 {
 }
 
+LinkStream& HostPacket::getPayload()
+{
+	return payloadStream;
+}
+
 unsigned int HostPacket::getPacketSize()
 {
 	return (4 + 4 + payloadStream.streamSize() + 1);
