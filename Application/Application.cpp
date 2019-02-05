@@ -17,7 +17,8 @@
 
 using namespace std;
 
-Application::Application(StartupArguments& args) : startArgs(args)
+Application::Application(StartupArguments& args) :
+		startArgs(args)
 {
 	exitRequested = false;
 }
@@ -46,7 +47,7 @@ int Application::run()
 	try
 	{
 		unsigned int argCount = startArgs.getCount();
-		if(argCount < 2)
+		if (argCount < 2)
 		{
 			printUsage();
 			return -1;
@@ -55,22 +56,26 @@ int Application::run()
 		targetname += startArgs[1];
 		auto targetArgs = startArgs.getRange(1, argCount - 1);
 
+		Profiler prof;
+		TcpLink link;
+
 		auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
+		target->link = &link;
 		target->setStartupParameters(targetname, targetArgs);
 
-		Profiler prof;
+		RequestBus bus;
+		bus.registerComponent(200, &prof);
+		bus.registerComponent(100, this);
+		bus.registerComponent(300, target.get());
+
 		prof.setProfilingTarget(std::move(target));
 
 		auto protocol = std::unique_ptr<DefaultProtocol>(new DefaultProtocol());
-		TcpLink link;
 		link.setProtocol(std::move(protocol));
 		link.initialize();
 
 		prof.link = &link;
 
-		RequestBus bus;
-		bus.registerComponent(200, &prof);
-		bus.registerComponent(100, this);
 
 		while (!exitRequested)
 		{

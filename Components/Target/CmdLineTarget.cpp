@@ -32,8 +32,8 @@ void CmdLineTarget::initialize()
 
 void CmdLineTarget::setStartupParameters(const std::string& filename, const StartupArguments& args)
 {
-	this->filename = filename;
-	this->arguments = arguments;
+	//this->filename = filename;
+	//this->arguments = arguments;
 }
 
 bool CmdLineTarget::isIsolatedProcess()
@@ -95,4 +95,24 @@ void CmdLineTarget::startInterestingPart()
 void CmdLineTarget::waitForTargetToFinish()
 {
 	waitpid(targetPid, nullptr, 0);
+}
+
+void CmdLineTarget::accept(HostPacket* packet)
+{
+	auto payload = packet->getPayload();
+	arguments.clear();
+	// extract target name and argument list from packet
+	payload >> filename;
+	unsigned int numberOfArguments;
+	payload >> numberOfArguments;
+	for(unsigned int i = 0; i < numberOfArguments; i++)
+	{
+		std::string temp;
+		payload >> temp;
+		arguments.append(temp);
+	}
+
+	HostPacket response(350);
+	response.addPayload(true);
+	link->sendPacket(response);
 }
