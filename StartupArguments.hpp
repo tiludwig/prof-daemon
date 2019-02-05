@@ -22,6 +22,8 @@ public:
 	void append(const char* arg);
 	void append(std::string& arg);
 
+	void clear();
+
 	std::vector<std::string>::iterator begin();
 	std::vector<std::string>::iterator end();
 

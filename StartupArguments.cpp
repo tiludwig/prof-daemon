@@ -41,6 +41,11 @@ StartupArguments StartupArguments::fromRawArgs(int argc, char** argv)
 	return args;
 }
 
+void StartupArguments::clear()
+{
+	arguments.clear();
+}
+
 int StartupArguments::getCount()
 {
 	return arguments.size();
