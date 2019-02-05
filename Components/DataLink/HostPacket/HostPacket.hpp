@@ -28,6 +28,8 @@ public:
 	template <class T>
 	void addPayload(T value);
 
+	LinkStream& getPayload();
+
 	unsigned int getPacketSize();
 
 	virtual std::unique_ptr<CheckedLinkStream> serialize();

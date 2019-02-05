@@ -20,11 +20,16 @@ public:
 
 	int getCount();
 	void append(const char* arg);
+	void append(std::string& arg);
+
+	void clear();
 
 	std::vector<std::string>::iterator begin();
 	std::vector<std::string>::iterator end();
 
 	std::string& operator[](unsigned int index);
+
+	StartupArguments getRange(unsigned int start, unsigned int count);
 
 	static StartupArguments fromRawArgs(int argc, char** argv);
 };

@@ -3,6 +3,8 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <string>
+#include "../../StartupArguments.hpp"
 
 class ITarget
 {
@@ -16,7 +18,7 @@ public:
 	 */
 	virtual void initialize() = 0;
 
-	virtual void setStartupParameters(const char* filename, char* arguments[]) = 0;
+	virtual void setStartupParameters(const std::string& filename, const StartupArguments& args) = 0;
 
 	virtual bool isIsolatedProcess() = 0;
 
