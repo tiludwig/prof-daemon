@@ -87,7 +87,7 @@ LinkStream& operator>>(LinkStream& stream, T& value)
 	for (unsigned int i = 0; i < sizeof(value); i++)
 	{
 		unsigned char temp = static_cast<unsigned char>(stream.dataBuffer[stream.streamReadPosition++]);
-		value = value | (temp << 8 * i);
+		value = value | (static_cast<T>(temp) << 8 * i);
 	}
 	return stream;
 }
