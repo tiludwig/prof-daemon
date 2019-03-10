@@ -28,6 +28,7 @@ public:
 	std::vector<std::string>::iterator end();
 
 	std::string& operator[](unsigned int index);
+	const std::string& operator[](unsigned int index) const;
 
 	StartupArguments getRange(unsigned int start, unsigned int count);
 

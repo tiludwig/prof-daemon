@@ -74,3 +74,11 @@ std::string& StartupArguments::operator[](unsigned int index)
 	return arguments[index];
 }
 
+const std::string& StartupArguments::operator[](unsigned int index) const
+{
+	if (index >= arguments.size())
+		throw "Index out of bounds.";
+
+	return arguments[index];
+}
+
