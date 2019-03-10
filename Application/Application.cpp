@@ -10,12 +10,20 @@
 #include "../Components/Target/CmdLineTarget.hpp"
 #include "../Components/DataLink/LinkLayer/TcpLink.hpp"
 #include "../Components/DataLink/ProtocolLayer/DefaultProtocol.hpp"
+#include "../Components/Target/RunningThreadTarget.hpp"
 
 #include "Application.hpp"
 #include <string>
 #include <cstring>
+#include <cstdio>
+#include <thread>
+#include <chrono>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 using namespace std;
+
+static pid_t threadId;
 
 Application::Application(StartupArguments& args) :
 		startArgs(args)
@@ -42,24 +50,48 @@ void Application::printUsage()
 	printf("       options\tThese options will be forwarded to the target.\n");
 }
 
+void threadFunc()
+{
+	threadId = syscall(SYS_gettid);
+	printf("My id is: %d\n", threadId);
+
+	while(true)
+	{
+		asm volatile("nop");
+		asm volatile("nop");
+		asm volatile("nop");
+		asm volatile("nop");
+		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+	}
+}
+
 int Application::run()
 {
+	std::thread t1(threadFunc);
 	try
 	{
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		unsigned int argCount = startArgs.getCount();
 		if (argCount < 2)
 		{
 			printUsage();
 			return -1;
 		}
+		//auto threadId = std::hash<std::thread::id>{}(t1.get_id());
 		string targetname("./");
 		targetname += startArgs[1];
-		auto targetArgs = startArgs.getRange(1, argCount - 1);
+		auto targetArgs = StartupArguments();//startArgs.getRange(1, argCount - 1);
+		targetArgs.append("");
+		targetArgs.append("");
+		auto strThreadId = std::to_string(threadId);
+		printf("Target thread id: %d\n", threadId);
+		targetArgs.append(strThreadId);
 
 		Profiler prof;
 		TcpLink link;
 
-		auto target = std::unique_ptr<CmdLineTarget>(new CmdLineTarget());
+		auto target = std::unique_ptr<RunningThreadTarget>(new RunningThreadTarget());
 		target->link = &link;
 		target->setStartupParameters(targetname, targetArgs);
 
@@ -80,13 +112,16 @@ int Application::run()
 		while (!exitRequested)
 		{
 			auto req = link.waitForPacket();
+			printf("Got packet\n");
 			bus.forwardRequest(std::move(req));
 		}
+
 		return 0;
 	} catch (const char* err)
 	{
 		printf("Error: %s\n", err);
 	}
+	t1.join();
 	return -1;
 }
 
