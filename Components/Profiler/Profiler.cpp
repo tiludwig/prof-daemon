@@ -174,6 +174,8 @@ CounterValues Profiler::profile()
 	targetApp->initialize();
 	pid_t childPid = targetApp->run();
 
+	printf("targeting pid: %d\n", childPid);
+
 	initCycleCounter(childPid);
 	initRetInstructionsCounter(childPid);
 	initCTXSwitchCounter(childPid);
@@ -188,12 +190,39 @@ CounterValues Profiler::profile()
 		ioctl(cycleCounterFd, PERF_EVENT_IOC_ENABLE, PERF_IOC_FLAG_GROUP);
 	}
 
-	ioctl(cycleCounterFd, PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP);
-	targetApp->startInterestingPart();
-	targetApp->waitForTargetToFinish();
-	ioctl(cycleCounterFd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP);
+	CounterValues statistic = { 0 };
+	CounterValues max = { 0 };
+	for (int i = 0; i < 1000; i++)
+	{
+		ioctl(cycleCounterFd, PERF_EVENT_IOC_RESET, PERF_IOC_FLAG_GROUP);
+		targetApp->startInterestingPart();
+		targetApp->waitForTargetToFinish();
+		//ioctl(cycleCounterFd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP);
 
-	return readPerformanceCounter();
+		auto results = readPerformanceCounter();
+		statistic.ctxSwitchesCount += results.ctxSwitchesCount;
+		statistic.cycleCount += results.cycleCount;
+		statistic.retInstructionsCount += results.retInstructionsCount;
+
+		if (results.cycleCount > max.cycleCount)
+		{
+			max.ctxSwitchesCount = results.ctxSwitchesCount;
+			max.cycleCount = results.cycleCount;
+			max.retInstructionsCount = results.retInstructionsCount;
+		}
+
+		printf("%llu %llu %llu\n", results.ctxSwitchesCount, results.cycleCount, results.retInstructionsCount);
+
+	}
+	ioctl(cycleCounterFd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP);
+	statistic.ctxSwitchesCount /= 1000;
+	statistic.cycleCount /= 1000;
+	statistic.retInstructionsCount /= 1000;
+	printf("%llu %llu %llu\n", statistic.ctxSwitchesCount, statistic.cycleCount, statistic.retInstructionsCount);
+
+	printf("%llu %llu %llu\n", max.ctxSwitchesCount, max.cycleCount, max.retInstructionsCount);
+
+	return statistic;
 }
 
 void Profiler::accept(HostPacket* packet)
