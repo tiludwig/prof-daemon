@@ -38,7 +38,7 @@ public:
 
 	void executeBinary(const std::string& path, StartupArguments& args)
 	{
-		printf("Target: Executing binary '%s'\n", path.c_str());
+		//printf("Target: Executing binary '%s'\n", path.c_str());
 		std::vector<char*> arguments;
 		arguments.push_back(const_cast<char*>(path.c_str()));
 
@@ -48,10 +48,10 @@ public:
 		}
 		arguments.push_back(NULL);
 
-		for(unsigned int i = 0; i < arguments.size(); i++)
+		/*for(unsigned int i = 0; i < arguments.size(); i++)
 		{
 			printf("Target: Arg%u -> '%s'\n", i, arguments[i]);
-		}
+		}*/
 
 		execv(path.c_str(), &arguments[0]);
 	}
