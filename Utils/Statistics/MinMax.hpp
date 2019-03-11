@@ -14,8 +14,11 @@ class MinMax {
 private:
 	__u64 _min;
 	__u64 _max;
+	bool _validMinMax;
 
 public:
+	MinMax();
+
 	void update(__u64 newValue);
 
 	__u64 getMin();
