@@ -7,6 +7,13 @@
 
 #include "Variance.hpp"
 
+Variance::Variance()
+{
+	_count = 0;
+	_M2 = 0.0;
+	_mean = 0.0;
+}
+
 void Variance::update(__u64 newValue) {
 	_count++;
 	double delta = newValue - _mean;

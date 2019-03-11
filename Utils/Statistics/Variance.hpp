@@ -13,9 +13,11 @@
 class Variance {
 private:
 	__u32 _count;
-	__u32 _M2;
+	double _M2;
 	double _mean;
 public:
+	Variance();
+
 	void update(__u64 newValue);
 
 	double getMean();
