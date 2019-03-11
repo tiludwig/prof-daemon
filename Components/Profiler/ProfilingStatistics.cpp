@@ -12,7 +12,7 @@ void ProfilingStatistics::update(__u64 newValue) {
 	_variance.update(newValue);
 }
 
-double ProfilingStatistics::getSampleCount() {
+__u32 ProfilingStatistics::getSampleCount() {
 	return _variance.getSampleCount();
 }
 

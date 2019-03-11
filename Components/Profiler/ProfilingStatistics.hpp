@@ -20,7 +20,7 @@ private:
 public:
 	void update(__u64 newValue);
 
-	double getSampleCount();
+	__u32 getSampleCount();
 	double getSampleVariance();
 	double getVariance();
 	double getMean();
