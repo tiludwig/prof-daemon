@@ -11,6 +11,7 @@
 #include "../DataLink/LinkLayer/DataLink.hpp"
 #include "../RequestBus/BusComponent.hpp"
 #include "../Target/ITarget.hpp"
+#include "ProfilingStatistics.hpp"
 #include <linux/types.h>
 
 struct CounterValues
@@ -74,6 +75,9 @@ private:
 	__u64 cycleCounterId;
 	__u64 retInstrCounterId;
 	__u64 ctxSwitchCounterId;
+
+	int _numOfRuns;
+	ProfilingStatistics _statistics;
 
 	std::unique_ptr<ITarget> targetApp;
 private:
